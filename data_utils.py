@@ -8,7 +8,7 @@ import torch.utils.data
 import commons
 from mel_processing import spectrogram_torch
 from utils import load_wav_to_torch, load_filepaths_and_text
-from text import text_to_sequence, cleaned_text_to_sequence
+from text import text_to_sequence, cleaned_text_to_sequence, phonemes_to_sequence
 
 
 class TextAudioLoader(torch.utils.data.Dataset):
@@ -48,9 +48,9 @@ class TextAudioLoader(torch.utils.data.Dataset):
 
         audiopaths_and_text_new = []
         lengths = []
-        for text, _, _, _, audiopath in self.audiopaths_and_text:
+        for _, _, _, text, audiopath in self.audiopaths_and_text:
             if self.min_text_len <= len(text) and len(text) <= self.max_text_len:
-                audiopath = "/home/dev/jared_en-us_m/wavs_normalize_audio/" + audiopath
+                audiopath = "/home/dev/marco_en-us_m/wavs007/" + audiopath
                 audiopaths_and_text_new.append([audiopath, text])
                 lengths.append(os.path.getsize(audiopath) // (2 * self.hop_length))
         self.audiopaths_and_text = audiopaths_and_text_new
@@ -82,10 +82,9 @@ class TextAudioLoader(torch.utils.data.Dataset):
         return spec, audio_norm
 
     def get_text(self, text):
-        if self.cleaned_text:
-            text_norm = cleaned_text_to_sequence(text)
-        else:
-            text_norm = text_to_sequence(text, self.text_cleaners)
+
+            #print("*******************************************************************************")
+        text_norm = phonemes_to_sequence(text)
         if self.add_blank:
             text_norm = commons.intersperse(text_norm, 0)
         text_norm = torch.LongTensor(text_norm)
